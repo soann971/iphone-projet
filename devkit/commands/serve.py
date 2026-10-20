@@ -16,7 +16,9 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 from urllib.parse import quote, unquote
 
-from .. import net
+import sys
+
+from .. import net, qr
 from ..output import bold, cyan, dim, info, ok, warn
 
 NAME = "serve"
@@ -57,6 +59,9 @@ def configure(parser) -> None:
     )
     parser.add_argument(
         "--no-upload", action="store_true", help="désactiver l'upload (lecture seule)"
+    )
+    parser.add_argument(
+        "--no-qr", action="store_true", help="ne pas afficher le QR code de l'URL"
     )
 
 
@@ -187,8 +192,18 @@ def run(args) -> int:
     print()
     print(bold("  Ouvre une de ces URL depuis un appareil du même wifi :"))
     print(f"    {cyan(f'http://localhost:{port}/')}  {dim('(cet appareil)')}")
-    for ip in net.local_ips():
+    ips = net.local_ips()
+    for ip in ips:
         print(f"    {cyan(f'http://{ip}:{port}/')}")
+
+    if ips and not args.no_qr:
+        url = f"http://{ips[0]}:{port}/"
+        print()
+        print(bold(f"  Scanne ce QR code pour ouvrir {url}"))
+        print()
+        color = sys.stdout.isatty()
+        for line in qr.render_lines(qr.make(url, level="M"), quiet=4, color=color):
+            print("  " + line)
     print()
     info("Ctrl+C pour arrêter")
     try:

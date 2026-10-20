@@ -11,6 +11,7 @@ instantanée et ne casse jamais.
 $ dk --help
   gen      générateurs & encodeurs (uuid, hash, b64, pass, now)
   json     formater / valider / interroger du JSON
+  qr       générer un QR code dans le terminal
   req      client HTTP minimal (GET/POST/… en urllib)
   serve    serveur de fichiers LAN avec upload (partage iPhone ↔ PC)
   snip     gestionnaire de snippets de code
@@ -37,6 +38,17 @@ page) et téléchargement. Affiche les URL à ouvrir depuis un autre appareil.
 dk serve ~/Documents          # sert un dossier (défaut : courant)
 dk serve -p 9000 --no-upload  # autre port, lecture seule
 ```
+
+### `dk qr` — QR code dans le terminal
+Encodeur QR **écrit from scratch, zéro dépendance** (Reed-Solomon sur GF(256),
+masquage, patterns). Rendu en demi-blocs colorés, scannable quel que soit le
+thème du terminal. `dk serve` l'utilise pour afficher l'URL à scanner.
+```sh
+dk qr "https://exemple.com"        # correction M par défaut
+dk qr "mon texte" -e H             # correction maximale
+echo "depuis stdin" | dk qr
+```
+Validé par round-trip de décodage (1600+ cas) et décodeurs externes (OpenCV).
 
 ### `dk req` — client HTTP (façon curl/httpie)
 ```sh
