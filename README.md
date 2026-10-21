@@ -16,6 +16,7 @@ $ dk --help
   serve    serveur de fichiers LAN avec upload (partage iPhone ↔ PC)
   snip     gestionnaire de snippets de code
   sys      infos système & réseau
+  watch    relancer une commande à chaque modification de fichier
   wifi     QR code de connexion wifi
 ```
 
@@ -50,6 +51,17 @@ dk qr "mon texte" -e H             # correction maximale
 echo "depuis stdin" | dk qr
 ```
 Validé par round-trip de décodage (1600+ cas) et décodeurs externes (OpenCV).
+
+### `dk watch` — relancer à chaque modification
+Surveille des fichiers (sondage des mtime, fiable sur iSH) et relance une
+commande à chaque changement. Les fichiers écrits par la commande elle-même
+sont réabsorbés : pas de relance en boucle.
+```sh
+dk watch -- pytest -x                 # relance les tests à chaque sauvegarde
+dk watch -e py -- python app.py       # ne surveiller que les .py
+dk watch -c -p src -- make build      # efface l'écran, surveille src/
+```
+Dossiers ignorés par défaut : `.git`, `__pycache__`, `node_modules`, `.venv`…
 
 ### `dk wifi` — QR de connexion wifi
 Génère le QR au format standard `WIFI:...;;` (reconnu par iOS et Android) :
