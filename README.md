@@ -16,6 +16,7 @@ $ dk --help
   serve    serveur de fichiers LAN avec upload (partage iPhone ↔ PC)
   snip     gestionnaire de snippets de code
   sys      infos système & réseau
+  wifi     QR code de connexion wifi
 ```
 
 ## Installation sur iSH
@@ -49,6 +50,17 @@ dk qr "mon texte" -e H             # correction maximale
 echo "depuis stdin" | dk qr
 ```
 Validé par round-trip de décodage (1600+ cas) et décodeurs externes (OpenCV).
+
+### `dk wifi` — QR de connexion wifi
+Génère le QR au format standard `WIFI:...;;` (reconnu par iOS et Android) :
+un invité le scanne et se connecte sans taper le mot de passe.
+```sh
+dk wifi "Maison_5G" "motdepasse"       # WPA par défaut
+dk wifi "OpenNet" -t nopass            # réseau ouvert
+dk wifi "HiddenNet" "mdp" -H           # SSID masqué
+dk wifi "Box" "mdp" --show             # affiche aussi la chaîne brute
+```
+Les caractères spéciaux (`;` `:` `,` `"` `\`) sont échappés automatiquement.
 
 ### `dk req` — client HTTP (façon curl/httpie)
 ```sh
