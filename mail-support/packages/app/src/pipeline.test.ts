@@ -260,6 +260,17 @@ describe.skipIf(!enabled)("pipeline complet (PostgreSQL)", () => {
     expect((await t.ctx.db.draftReply.findMany({ orderBy: { createdAt: "asc" } })).map((d) => d.status)).toEqual(["SUPERSEDED", "DRAFT"]);
   });
 
+  it("question générale sans base de connaissances → jamais de réponse inventée", async () => {
+    const t = await setup();
+    const { result } = await receive(t, { fromEmail: ALICE, subject: "Question", bodyText: "Livrez-vous en Belgique ?" });
+    expect(result?.decision).toBe("REVIEW");
+    expect(result?.reasons.join()).toMatch(/base de connaissances/);
+    await t.ctx.db.knowledgeEntry.create({ data: { title: "Livraison", content: "Nous livrons en France et en Belgique." } });
+    const second = await receive(t, { fromEmail: BOB, subject: "Question", bodyText: "Livrez-vous en Belgique ?" });
+    expect(second.result?.decision).toBe("AUTO");
+    expect(t.ai.drafts.at(-1)?.facts.knowledge?.[0]?.content).toContain("Belgique");
+  });
+
   it("ingestion idempotente", async () => {
     const t = await setup();
     const { m } = await receive(t, { fromEmail: ALICE, subject: "Question", bodyText: "Bonjour" });

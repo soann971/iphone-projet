@@ -1,0 +1,42 @@
+name: mail-support
+
+on:
+  push:
+    paths: ["mail-support/**", ".github/workflows/mail-support.yml"]
+  pull_request:
+    paths: ["mail-support/**", ".github/workflows/mail-support.yml"]
+
+defaults:
+  run:
+    working-directory: mail-support
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ms
+          POSTGRES_PASSWORD: ms
+          POSTGRES_DB: mail_support_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ms" --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://ms:ms@localhost:5432/mail_support_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: mail-support/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: mail-support/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: DATABASE_URL=$TEST_DATABASE_URL pnpm --filter @ms/db migrate:deploy
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @ms/dashboard build

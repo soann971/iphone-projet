@@ -426,7 +426,8 @@ export async function buildFacts(ctx: AppContext, i: EnrichInput): Promise<Enric
   // ---------- Base de connaissances ----------
   const knowledge = await ctx.db.knowledgeEntry.findMany({ where: { active: true }, orderBy: { title: "asc" }, take: 40 });
   if (knowledge.length) facts.knowledge = knowledge.map((k) => ({ title: k.title, content: k.content }));
-  if (category === "INFO" && !knowledge.length) facts.missing.push("(aucune information de référence disponible : transmettre à un conseiller)");
+  // Sans base de connaissances, une question générale ne peut pas recevoir de réponse sûre.
+  if (category === "INFO" && !knowledge.length) facts.flags.push("NO_KNOWLEDGE");
 
   for (const m of analysis.missingInfo) addMissing(m);
 

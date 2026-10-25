@@ -34,6 +34,7 @@ const FLAG_REASONS: Partial<Record<FactFlag, string>> = {
   QUOTE_INCOMPLETE: "Devis incomplet : produit introuvable ou ambigu dans le catalogue",
   SHOPIFY_UNAVAILABLE: "Shopify indisponible : données de commande non vérifiées",
   ORDER_CANCELLED: "Commande annulée",
+  NO_KNOWLEDGE: "Aucune information de référence (base de connaissances vide)",
 };
 
 /**

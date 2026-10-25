@@ -75,7 +75,8 @@ export type FactFlag =
   | "QUOTE_INCOMPLETE"
   | "SHOPIFY_UNAVAILABLE"
   | "TRACKING_UNAVAILABLE"
-  | "ORDER_CANCELLED";
+  | "ORDER_CANCELLED"
+  | "NO_KNOWLEDGE";
 
 /** Toutes les valeurs que la réponse a le droit de citer (pour le garde-fou). */
 export function allowedLiteralsFromFacts(f: VerifiedFacts): string[] {
