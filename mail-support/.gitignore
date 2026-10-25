@@ -10,3 +10,4 @@ coverage/
 packages/db/src/generated/
 next-env.d.ts
 *.tsbuildinfo
+dump.rdb
