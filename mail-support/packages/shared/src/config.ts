@@ -52,6 +52,8 @@ const EnvSchema = z.object({
   /** Jeton d'une ancienne "custom app" (shpat_…), si vous en avez une. Prioritaire. */
   SHOPIFY_ADMIN_TOKEN: z.string().default(""),
   SHOPIFY_API_VERSION: z.string().default("2026-10"),
+  /** Secret de signature des webhooks (par défaut : SHOPIFY_CLIENT_SECRET). */
+  SHOPIFY_WEBHOOK_SECRET: z.string().default(""),
 
   LAPOSTE_API_KEY: z.string().default(""),
   SEVENTEENTRACK_API_KEY: z.string().default(""),

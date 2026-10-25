@@ -1,0 +1,29 @@
+{
+  "name": "@ms/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.3",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^11.2.1",
+    "@ms/app": "workspace:*",
+    "@ms/core": "workspace:*",
+    "@ms/crypto": "workspace:*",
+    "@ms/db": "workspace:*",
+    "@ms/gmail": "workspace:*",
+    "@ms/integrations": "workspace:*",
+    "@ms/shared": "workspace:*",
+    "fastify": "^5.12.7",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0"
+  }
+}

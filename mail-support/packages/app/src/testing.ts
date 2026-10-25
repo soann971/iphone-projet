@@ -88,13 +88,16 @@ export function fakeShopify(data: FakeShopifyData) {
 }
 
 export function fakeQueues() {
-  const jobs = { ingest: [] as string[], process: [] as string[], send: [] as string[] };
+  const jobs = { ingest: [] as string[], process: [] as string[], send: [] as string[], sync: [] as string[], shopify: [] as unknown[] };
   const q = {
     jobs,
+    send: { name: "send", add: async (_n: string, d: { draftId: string }) => void jobs.send.push(d.draftId) },
+    shopify: { name: "shopify", add: async (_n: string, d: unknown) => void jobs.shopify.push(d) },
+    all: () => [],
     enqueueIngest: async (_a: string, id: string) => void jobs.ingest.push(id),
     enqueueProcess: async (id: string) => void jobs.process.push(id),
     enqueueSend: async (id: string) => void jobs.send.push(id),
-    enqueueSync: async () => undefined,
+    enqueueSync: async (id: string) => void jobs.sync.push(id),
   };
   return q as unknown as Queues & { jobs: typeof jobs };
 }
