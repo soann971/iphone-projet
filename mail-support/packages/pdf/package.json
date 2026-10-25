@@ -1,0 +1,16 @@
+{
+  "name": "@ms/pdf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": {
+    "@ms/core": "workspace:*",
+    "pdfkit": "^0.20.2"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.7"
+  }
+}
