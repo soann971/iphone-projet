@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
-    "start": "node dist/index.js",
-    "build": "tsup",
+    "start": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
     "cli": "tsx --env-file-if-exists=../../.env src/cli.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
@@ -16,9 +16,7 @@
     "@ms/db": "workspace:*",
     "@ms/integrations": "workspace:*",
     "@ms/shared": "workspace:*",
-    "bullmq": "^5.81.5"
-  },
-  "devDependencies": {
-    "tsup": "^8.5.0"
+    "bullmq": "^5.81.5",
+    "tsx": "^4.23.15"
   }
 }

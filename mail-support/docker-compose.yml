@@ -1,0 +1,85 @@
+# Lancement local complet : docker compose up --build
+# Prérequis : un fichier .env (copie de .env.example) à la racine.
+name: mail-support
+
+x-backend: &backend
+  build: { context: ., dockerfile: Dockerfile }
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql://ms:${POSTGRES_PASSWORD:-ms-local-only}@postgres:5432/mail_support
+    REDIS_URL: redis://redis:6379
+  depends_on:
+    postgres: { condition: service_healthy }
+    redis: { condition: service_healthy }
+    migrate: { condition: service_completed_successfully }
+  volumes:
+    - storage:/app/storage
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ms-local-only}
+      POSTGRES_DB: mail_support
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ms -d mail_support"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # AOF : les jobs en file survivent à un redémarrage.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Applique les migrations puis crée l'administrateur (ADMIN_EMAIL / ADMIN_PASSWORD).
+  migrate:
+    build: { context: ., dockerfile: Dockerfile }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://ms:${POSTGRES_PASSWORD:-ms-local-only}@postgres:5432/mail_support
+    depends_on:
+      postgres: { condition: service_healthy }
+    command: ["sh", "-c", "pnpm --filter @ms/db migrate:deploy && pnpm --filter @ms/db seed"]
+    restart: "no"
+
+  api:
+    <<: *backend
+    environment:
+      DATABASE_URL: postgresql://ms:${POSTGRES_PASSWORD:-ms-local-only}@postgres:5432/mail_support
+      REDIS_URL: redis://redis:6379
+      SERVICE_NAME: api
+    command: ["node", "--import", "tsx", "apps/api/src/index.ts"]
+    ports: ["4000:4000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      retries: 5
+
+  worker:
+    <<: *backend
+    environment:
+      DATABASE_URL: postgresql://ms:${POSTGRES_PASSWORD:-ms-local-only}@postgres:5432/mail_support
+      REDIS_URL: redis://redis:6379
+      SERVICE_NAME: worker
+    command: ["node", "--import", "tsx", "apps/worker/src/index.ts"]
+
+  dashboard:
+    build: { context: ., dockerfile: apps/dashboard/Dockerfile, args: { API_URL: "http://api:4000" } }
+    depends_on: [api]
+    ports: ["3000:3000"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  storage:
