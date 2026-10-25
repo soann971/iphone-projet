@@ -34,6 +34,18 @@ export async function computeStats(ctx: AppContext, days = 30) {
       inputTokens: aiUsage._sum.inputTokens ?? 0,
       outputTokens: aiUsage._sum.outputTokens ?? 0,
     },
-    daily: daily.map((d) => ({ day: d.day.toISOString().slice(0, 10), received: Number(d.received) })),
+    daily: fillDays(since, ctx.now(), daily),
   };
+}
+
+/** Série continue (jours sans ticket = 0) pour un histogramme lisible. */
+function fillDays(from: Date, to: Date, rows: { day: Date; received: bigint }[]) {
+  const map = new Map(rows.map((r) => [r.day.toISOString().slice(0, 10), Number(r.received)]));
+  const out: { day: string; received: number }[] = [];
+  const d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() + 1));
+  for (; d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: key, received: map.get(key) ?? 0 });
+  }
+  return out;
 }

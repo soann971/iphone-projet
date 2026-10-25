@@ -32,7 +32,7 @@ export const ticketRoutes =
     app.get("/api/tickets", viewer, async (req) => {
       const q = ListQuery.parse(req.query);
       const where: Prisma.TicketWhereInput = {};
-      if (q.status) where.status = { in: (STATUS_GROUPS[q.status] ?? [q.status]) as never };
+      if (q.status && q.status !== "all") where.status = { in: (STATUS_GROUPS[q.status] ?? [q.status]) as never };
       if (q.category) where.category = q.category;
       if (q.q) {
         const n = Number(q.q.replace("#", ""));
