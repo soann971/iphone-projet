@@ -1,0 +1,13 @@
+{
+  "id": "sav-colere",
+  "from": "client.l@exemple.fr",
+  "subject": "INADMISSIBLE",
+  "body": "C'EST LA TROISIÈME FOIS QUE JE VOUS ÉCRIS !!! Le téléphone que vous m'avez vendu est une arnaque, il redémarre tout seul. Je veux être remboursé immédiatement sinon je saisis une association de consommateurs.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "AFTER_SALES",
+    "refundRequested": true,
+    "angry": true
+  }
+}

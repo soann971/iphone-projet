@@ -1,0 +1,14 @@
+{
+  "id": "order-modif-adresse",
+  "from": "client.c@exemple.fr",
+  "subject": "Changement d'adresse commande #1052",
+  "body": "Bonjour,\nJe viens de passer la commande #1052 et je me suis trompé d'adresse de livraison. La bonne adresse est 12 rue des Lilas 35000 Rennes. Est-ce encore modifiable ?\nMerci d'avance\nThomas",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "ORDER",
+    "orderNumbers": [
+      "#1052"
+    ]
+  }
+}

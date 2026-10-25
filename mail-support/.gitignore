@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.next/
+.env
+.env.*
+!.env.example
+storage/
+coverage/
+*.log
+packages/db/src/generated/
+next-env.d.ts
+*.tsbuildinfo

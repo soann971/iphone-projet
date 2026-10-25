@@ -1,0 +1,14 @@
+{
+  "id": "return-retractation",
+  "from": "client.g@exemple.fr",
+  "subject": "Retour iPhone 13",
+  "body": "Bonjour,\nJ'ai reçu mon iPhone 13 reconditionné il y a 5 jours (commande #1081) mais finalement il ne me convient pas, je souhaite exercer mon droit de rétractation. Comment procéder pour le retour ?\nBien à vous",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "RETURN",
+    "orderNumbers": [
+      "#1081"
+    ]
+  }
+}

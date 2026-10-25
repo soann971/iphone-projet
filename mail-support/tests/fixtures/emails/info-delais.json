@@ -1,0 +1,11 @@
+{
+  "id": "info-delais",
+  "from": "client.a@exemple.fr",
+  "subject": "Délais de livraison",
+  "body": "Bonjour,\nAvant de commander, je voudrais savoir quels sont vos délais de livraison pour la Bretagne ? Et est-ce que vous livrez en point relais ?\nMerci\nCamille",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "INFO"
+  }
+}

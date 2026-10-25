@@ -1,0 +1,11 @@
+{
+  "id": "spam-phishing",
+  "from": "security@paypa1-exemple.com",
+  "subject": "Votre compte sera suspendu",
+  "body": "Cher client, votre compte présente une activité inhabituelle. Cliquez ici pour vérifier vos informations sous 24h sinon il sera suspendu.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "SPAM"
+  }
+}

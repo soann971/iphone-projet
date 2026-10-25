@@ -1,0 +1,14 @@
+{
+  "id": "order-facture",
+  "from": "client.d@exemple.fr",
+  "subject": "Facture",
+  "body": "Bonjour, pourriez-vous m'envoyer la facture de ma commande 1077 svp ? J'en ai besoin pour ma comptabilité. Merci",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "ORDER",
+    "orderNumbers": [
+      "#1077"
+    ]
+  }
+}

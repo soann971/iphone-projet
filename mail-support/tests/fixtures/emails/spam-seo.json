@@ -1,0 +1,11 @@
+{
+  "id": "spam-seo",
+  "from": "growth@agence-seo-exemple.com",
+  "subject": "Boostez votre référencement",
+  "body": "Bonjour, nous avons analysé votre site et pouvons vous placer en première page de Google en 30 jours. Réservez un appel de 15 minutes cette semaine.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "SPAM"
+  }
+}

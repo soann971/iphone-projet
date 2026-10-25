@@ -1,0 +1,14 @@
+{
+  "id": "return-mauvaise-couleur",
+  "from": "client.h@exemple.fr",
+  "subject": "Erreur de couleur",
+  "body": "Bonjour, j'ai commandé une coque bleue et j'ai reçu une rose (commande #1090). Je voudrais l'échanger. Merci de me dire comment faire.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "RETURN",
+    "orderNumbers": [
+      "#1090"
+    ]
+  }
+}

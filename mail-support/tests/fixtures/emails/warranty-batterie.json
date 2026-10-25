@@ -1,0 +1,17 @@
+{
+  "id": "warranty-batterie",
+  "from": "client.i@exemple.fr",
+  "subject": "Garantie batterie",
+  "body": "Bonjour,\nMon iPhone 12 acheté chez vous en mars dernier ne tient plus la charge, la batterie se vide en 2 heures. Il est encore sous garantie normalement, comment faire la prise en charge ? Commande #1012, IMEI 356789104523411.\nCordialement",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "WARRANTY",
+    "orderNumbers": [
+      "#1012"
+    ],
+    "serialNumbers": [
+      "356789104523411"
+    ]
+  }
+}

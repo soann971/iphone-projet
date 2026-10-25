@@ -1,0 +1,11 @@
+{
+  "id": "info-paiement",
+  "from": "client.b@exemple.fr",
+  "subject": "Paiement en plusieurs fois",
+  "body": "Bonsoir, est-il possible de payer en 3 ou 4 fois sans frais sur votre site ? Cordialement, M. Durand",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "INFO"
+  }
+}

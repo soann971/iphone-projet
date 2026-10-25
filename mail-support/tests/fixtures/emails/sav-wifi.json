@@ -1,0 +1,11 @@
+{
+  "id": "sav-wifi",
+  "from": "client.k@exemple.fr",
+  "subject": "Problème wifi",
+  "body": "Bonjour, depuis la dernière mise à jour iOS mon iPhone ne se connecte plus au wifi, les autres appareils oui. Avez-vous une solution ?",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "AFTER_SALES"
+  }
+}

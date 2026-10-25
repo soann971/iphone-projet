@@ -1,0 +1,14 @@
+{
+  "id": "shipping-livre-absent",
+  "from": "client.f@exemple.fr",
+  "subject": "Colis indiqué livré mais pas reçu",
+  "body": "Bonjour,\nLe suivi Colissimo 6A12345678901 indique que mon colis a été livré hier mais je n'ai rien dans ma boîte aux lettres. Que dois-je faire ?\nSophie",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "SHIPPING",
+    "trackingNumbers": [
+      "6A12345678901"
+    ]
+  }
+}

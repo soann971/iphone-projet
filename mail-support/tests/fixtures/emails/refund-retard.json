@@ -1,0 +1,15 @@
+{
+  "id": "refund-retard",
+  "from": "client.o@exemple.fr",
+  "subject": "Toujours pas livré - remboursement",
+  "body": "Bonjour, ma commande #1066 devait arriver il y a 10 jours. Si je ne la reçois pas avant vendredi je demande le remboursement.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "SHIPPING",
+    "orderNumbers": [
+      "#1066"
+    ],
+    "refundRequested": true
+  }
+}

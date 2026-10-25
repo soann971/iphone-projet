@@ -1,0 +1,15 @@
+{
+  "name": "@ms/ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "@ms/core": "workspace:*",
+    "@ms/shared": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}

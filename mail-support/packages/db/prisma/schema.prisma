@@ -1,0 +1,459 @@
+// Modèle de données du logiciel de gestion des emails clients.
+// Conventions : identifiants cuid, dates en UTC, montants en Decimal(12,2).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Category {
+  INFO
+  ORDER
+  QUOTE
+  WARRANTY
+  RETURN
+  AFTER_SALES
+  SHIPPING
+  SPAM
+}
+
+enum TicketStatus {
+  NEW
+  PROCESSING
+  PENDING_REVIEW
+  AUTO_REPLIED
+  REPLIED
+  WAITING_CUSTOMER
+  ESCALATED
+  CLOSED
+  SPAM
+  ERROR
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum Direction {
+  INBOUND
+  OUTBOUND
+}
+
+enum SendDecision {
+  AUTO
+  REVIEW
+}
+
+enum DraftStatus {
+  DRAFT
+  APPROVED
+  SENDING
+  SENT
+  REJECTED
+  SUPERSEDED
+  FAILED
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+  AI
+  CUSTOMER
+}
+
+enum UserRole {
+  ADMIN
+  AGENT
+  VIEWER
+}
+
+enum DocumentKind {
+  QUOTE_PDF
+  RETURN_PROCEDURE_PDF
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         UserRole  @default(AGENT)
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedTickets Ticket[]      @relation("assignee")
+  approvedDrafts  DraftReply[]  @relation("approver")
+}
+
+/// Boîte Gmail connectée. Le refresh token est chiffré (AES-256-GCM, @ms/crypto).
+model GmailAccount {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  encryptedRefreshToken String
+  scopes                String
+  /// Dernier historyId traité (curseur de synchronisation incrémentale).
+  historyId             String?
+  watchExpiresAt        DateTime?
+  /// Correspondance nom de libellé -> id de libellé Gmail.
+  labelIds              Json      @default("{}")
+  lastSyncAt            DateTime?
+  active                Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tickets Ticket[]
+}
+
+model Customer {
+  id                String    @id @default(cuid())
+  /// Email normalisé (minuscules, sans espaces).
+  email             String    @unique
+  name              String?
+  phone             String?
+  shopifyCustomerId String?   @unique
+  locale            String    @default("fr")
+  lastContactAt     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tickets Ticket[]
+  orders  Order[]
+  quotes  Quote[]
+}
+
+/// Un fil Gmail = un ticket. Les réponses d'un même fil restent dans le même ticket.
+model Ticket {
+  id                String       @id @default(cuid())
+  /// Numéro lisible (#1042).
+  number            Int          @unique @default(autoincrement())
+  gmailThreadId     String       @unique
+  gmailAccountId    String
+  customerId        String
+  subject           String
+  category          Category?
+  status            TicketStatus @default(NEW)
+  priority          Priority     @default(NORMAL)
+  /// Commande Shopify rattachée (si identifiée et vérifiée).
+  orderId           String?
+  assigneeId        String?
+  /// Raisons de la dernière mise en validation humaine.
+  reviewReasons     String[]     @default([])
+  tags              String[]     @default([])
+  lastMessageAt     DateTime     @default(now())
+  firstResponseAt   DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  gmailAccount   GmailAccount    @relation(fields: [gmailAccountId], references: [id])
+  customer       Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order          Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  assignee       User?           @relation("assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  messages       Message[]
+  analyses       AiAnalysis[]
+  drafts         DraftReply[]
+  warrantyClaims WarrantyClaim[]
+  returnRequests ReturnRequest[]
+  quotes         Quote[]
+  documents      Document[]
+
+  @@index([status, lastMessageAt])
+  @@index([category])
+  @@index([customerId])
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  ticketId       String
+  gmailMessageId String    @unique
+  /// En-tête Message-ID (pour In-Reply-To / References).
+  rfcMessageId   String?
+  references     String?
+  direction      Direction
+  fromEmail      String
+  fromName       String?
+  toEmails       String[]  @default([])
+  ccEmails       String[]  @default([])
+  subject        String
+  /// Texte nettoyé (sans citations ni signature) — c'est ce que voit l'IA.
+  bodyText       String
+  /// Texte complet d'origine (pour l'affichage dans le dashboard).
+  bodyFull       String
+  snippet        String    @default("")
+  /// Réponse automatique / rebond / liste de diffusion : jamais de réponse auto.
+  isAutomated    Boolean   @default(false)
+  receivedAt     DateTime
+  createdAt      DateTime  @default(now())
+
+  ticket      Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+  analyses    AiAnalysis[]
+
+  @@index([ticketId, receivedAt])
+}
+
+model Attachment {
+  id                String  @id @default(cuid())
+  messageId         String
+  filename          String
+  mimeType          String
+  size              Int
+  gmailAttachmentId String?
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+/// Résultat d'un passage de l'IA sur un message (traçabilité complète).
+model AiAnalysis {
+  id                 String   @id @default(cuid())
+  messageId          String
+  ticketId           String
+  model              String
+  promptVersion      String
+  category           Category
+  confidence         Float
+  language           String
+  sentiment          String
+  summary            String
+  /// Données extraites (numéros de commande, produits, n° de série…). JSON validé par Zod.
+  extracted          Json
+  /// Intentions sensibles détectées (remboursement, litige…).
+  intents            Json
+  riskFlags          String[] @default([])
+  injectionSuspected Boolean  @default(false)
+  inputTokens        Int      @default(0)
+  outputTokens       Int      @default(0)
+  latencyMs          Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  ticket  Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+/// Réponse proposée (par l'IA ou un humain) avant envoi.
+model DraftReply {
+  id                 String       @id @default(cuid())
+  ticketId           String
+  /// Message auquel on répond.
+  replyToMessageId   String?
+  subject            String
+  body               String
+  decision           SendDecision
+  confidence         Float        @default(0)
+  reviewReasons      String[]     @default([])
+  /// Instantané des faits vérifiés utilisés pour rédiger.
+  facts              Json         @default("{}")
+  /// Ids de Document joints.
+  documentIds        String[]     @default([])
+  status             DraftStatus  @default(DRAFT)
+  authorType         ActorType    @default(AI)
+  authorId           String?
+  approvedById       String?
+  approvedAt         DateTime?
+  sentAt             DateTime?
+  sentGmailMessageId String?
+  error              String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  ticket     Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  approvedBy User?  @relation("approver", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([ticketId])
+}
+
+/// Cache local des commandes Shopify (alimenté par webhooks et recherches à la demande).
+model Order {
+  id                String    @id @default(cuid())
+  shopifyId         String    @unique
+  /// Nom affiché, ex. "#1234".
+  name              String
+  email             String?
+  customerId        String?
+  currency          String
+  totalPrice        Decimal   @db.Decimal(12, 2)
+  financialStatus   String?
+  fulfillmentStatus String?
+  orderedAt         DateTime
+  cancelledAt       DateTime?
+  /// [{ title, sku, quantity, variantId, productId, warrantyMonths, fulfillmentLineItemIds }]
+  lineItems         Json
+  syncedAt          DateTime  @default(now())
+
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  shipments Shipment[]
+  tickets   Ticket[]
+
+  @@index([email])
+  @@index([name])
+}
+
+model Shipment {
+  id                   String    @id @default(cuid())
+  orderId              String
+  shopifyFulfillmentId String?   @unique
+  carrier              String?
+  trackingNumber       String?
+  trackingUrl          String?
+  /// Statut normalisé : PENDING, IN_TRANSIT, OUT_FOR_DELIVERY, AVAILABLE_FOR_PICKUP, DELIVERED, EXCEPTION, RETURNED, UNKNOWN
+  status               String    @default("UNKNOWN")
+  statusLabel          String?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+  lastCheckedAt        DateTime?
+  events               Json      @default("[]")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([trackingNumber])
+}
+
+model WarrantyClaim {
+  id               String    @id @default(cuid())
+  ticketId         String
+  orderId          String?
+  productTitle     String
+  serialNumber     String?
+  purchaseDate     DateTime?
+  warrantyMonths   Int
+  expiresAt        DateTime?
+  /// null = indéterminé (donnée manquante).
+  eligible         Boolean?
+  reason           String
+  issueDescription String?
+  status           String    @default("OPEN")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model ReturnRequest {
+  id                String    @id @default(cuid())
+  ticketId          String
+  orderId           String?
+  /// Numéro d'autorisation de retour, ex. RET-2026-00012.
+  rmaNumber         String    @unique
+  items             Json
+  reason            String?
+  deliveredAt       DateTime?
+  deadline          DateTime?
+  eligible          Boolean?
+  eligibilityReason String
+  shopifyReturnId   String?
+  documentId        String?
+  status            String    @default("REQUESTED")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model Quote {
+  id                  String   @id @default(cuid())
+  /// Numéro de devis, ex. DEV-2026-00042.
+  number              String   @unique
+  ticketId            String
+  customerId          String
+  /// [{ title, sku, variantId, quantity, unitPriceTtc, vatRate }]
+  lines               Json
+  currency            String   @default("EUR")
+  totalHt             Decimal  @db.Decimal(12, 2)
+  totalVat            Decimal  @db.Decimal(12, 2)
+  totalTtc            Decimal  @db.Decimal(12, 2)
+  validUntil          DateTime
+  shopifyDraftOrderId String?
+  invoiceUrl          String?
+  documentId          String?
+  status              String   @default("DRAFT")
+  createdAt           DateTime @default(now())
+
+  ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+/// Fichier généré (PDF) stocké sur disque (STORAGE_DIR).
+model Document {
+  id          String       @id @default(cuid())
+  kind        DocumentKind
+  filename    String
+  mimeType    String       @default("application/pdf")
+  storagePath String
+  size        Int
+  sha256      String
+  ticketId    String?
+  createdAt   DateTime     @default(now())
+
+  ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+/// Base de connaissances utilisée par l'IA pour les demandes d'information générale.
+/// L'IA ne peut répondre qu'avec ces informations (jamais inventer).
+model KnowledgeEntry {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  tags      String[] @default([])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Journal de toutes les actions (qui, quoi, quand). Ne contient jamais le contenu des mails.
+model AuditLog {
+  id         BigInt    @id @default(autoincrement())
+  at         DateTime  @default(now())
+  actorType  ActorType
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  ip         String?
+
+  @@index([entityType, entityId])
+  @@index([at])
+  @@index([action])
+}
+
+/// Paramètres modifiables depuis le dashboard (seuils, signature, conservation…).
+model Setting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
+
+/// Compteurs atomiques (numérotation des devis et retours).
+model Counter {
+  key   String @id
+  value Int    @default(0)
+}
+
+/// Secrets d'intégration chiffrés (jeton Shopify en cache…).
+model IntegrationCredential {
+  provider      String    @id
+  encryptedData String
+  expiresAt     DateTime?
+  updatedAt     DateTime  @updatedAt
+}
+
+/// Idempotence des webhooks (Shopify X-Shopify-Webhook-Id, Pub/Sub messageId).
+model ProcessedEvent {
+  id         String   @id
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
+}

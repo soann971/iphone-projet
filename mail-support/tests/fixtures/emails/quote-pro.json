@@ -1,0 +1,12 @@
+{
+  "id": "quote-pro",
+  "from": "achats@entreprise-exemple.fr",
+  "subject": "Demande de devis",
+  "body": "Bonjour,\nPour équiper nos commerciaux, pourriez-vous nous faire un devis pour 10 iPhone 13 128 Go reconditionnés grade A et 10 coques de protection ?\nCordialement,\nService achats",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "QUOTE",
+    "products": true
+  }
+}

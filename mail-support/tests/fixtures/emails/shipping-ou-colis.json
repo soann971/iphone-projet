@@ -1,0 +1,14 @@
+{
+  "id": "shipping-ou-colis",
+  "from": "client.e@exemple.fr",
+  "subject": "Où est mon colis ??",
+  "body": "Bonjour j'ai commandé il y a une semaine (commande n° 1060) et je n'ai toujours rien reçu, pouvez-vous me dire où en est mon colis ? merci",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "SHIPPING",
+    "orderNumbers": [
+      "#1060"
+    ]
+  }
+}

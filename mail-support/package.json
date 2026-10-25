@@ -1,0 +1,32 @@
+{
+  "name": "mail-support",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Gestion automatique des emails clients d'une boutique Shopify (Gmail + Claude)",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "type": "module",
+  "scripts": {
+    "dev:api": "pnpm --filter @ms/api dev",
+    "dev:worker": "pnpm --filter @ms/worker dev",
+    "dev:dashboard": "pnpm --filter @ms/dashboard dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "pnpm --filter @ms/db generate",
+    "db:migrate": "pnpm --filter @ms/db migrate:dev",
+    "db:deploy": "pnpm --filter @ms/db migrate:deploy",
+    "db:seed": "pnpm --filter @ms/db seed",
+    "cli": "pnpm --filter @ms/worker cli"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "5.9.3",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["prisma", "@prisma/engines", "@prisma/client", "esbuild"]
+  }
+}

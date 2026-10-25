@@ -1,0 +1,11 @@
+{
+  "id": "warranty-ecran",
+  "from": "client.j@exemple.fr",
+  "subject": "Ecran qui clignote",
+  "body": "Bonjour l'écran de mon téléphone clignote depuis hier sans choc ni chute. Je l'ai acheté il y a 8 mois. Est-ce couvert par la garantie ? Je peux envoyer une vidéo.",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "WARRANTY"
+  }
+}

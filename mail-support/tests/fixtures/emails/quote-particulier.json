@@ -1,0 +1,12 @@
+{
+  "id": "quote-particulier",
+  "from": "client.m@exemple.fr",
+  "subject": "Devis pour 2 téléphones",
+  "body": "Bonjour, j'aimerais un devis pour deux iPhone 12 64 Go, c'est pour offrir. Merci !",
+  "attachments": [],
+  "thread": [],
+  "expected": {
+    "category": "QUOTE",
+    "products": true
+  }
+}
